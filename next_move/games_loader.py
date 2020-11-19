@@ -2,6 +2,9 @@ from typing import TextIO, List
 from io import StringIO
 import requests
 import chess.pgn
+import logging
+
+logger = logging.getLogger('GamesLoader')
 
 
 class GamesLoader:
@@ -14,7 +17,7 @@ class GamesLoader:
         try:
             pgn_text = open(source)
         except IOError as e:
-            print(f'Could not open file \"{source}\": {e}')
+            logger.error('Could not open file "%s": %s', source, e)
             return None
 
         games: List[chess.pgn.Game] = GamesLoader._load_games(pgn_text)
@@ -27,7 +30,7 @@ class GamesLoader:
             url_content = requests.get(source)
             pgn_text = StringIO(url_content.text)
         except requests.exceptions.RequestException as e:
-            print(f'Could not open url\"{source}\": {e}')
+            logger.error('Could not open url "%s": %s', source, e)
             return None
 
         games: List[chess.pgn.Game] = GamesLoader._load_games(pgn_text)
@@ -39,8 +42,12 @@ class GamesLoader:
         games: List[chess.pgn.Game] = []
 
         while True:
-            loaded_game = chess.pgn.read_game(loaded_pgn)
-            if loaded_game is None:
+            try:
+                loaded_game = chess.pgn.read_game(loaded_pgn)
+            except ValueError as e:
+                logger.error('Error occured: %s', e)
+                break
+            if loaded_game is None or len(loaded_game.errors) > 0:
                 break
             games.append(loaded_game)
 

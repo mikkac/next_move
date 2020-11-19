@@ -1,8 +1,11 @@
 import unittest
+import coloredlogs
 
 import sys
 sys.path.insert(0, '..')
 from next_move.games_loader import GamesLoader
+
+coloredlogs.install()
 
 
 class GamesLoaderTest(unittest.TestCase):
@@ -24,8 +27,17 @@ class GamesLoaderTest(unittest.TestCase):
         obtained_games = GamesLoader.load_from_file(pgn_path)
         self.assertEqual(obtained_games, expected_games)
 
-    def load_from_url_success(self):
-        self.assertTrue('FOO'.isupper())
+    def test_load_from_url_success(self):
+        url = 'https://www.chessgames.com/perl/nph-chesspgn?text=1&gid=1000000'
+        expected_number_of_games = 1
+        obtained_number_of_games = len(GamesLoader.load_from_url(url))
+        self.assertEqual(obtained_number_of_games, expected_number_of_games)
+
+    def test_load_from_url_failure(self):
+        url = 'https://www.DOESNOTEXIST.com'
+        expected_number_of_games = 0
+        obtained_number_of_games = len(GamesLoader.load_from_url(url))
+        self.assertEqual(obtained_number_of_games, expected_number_of_games)
 
 
 if __name__ == '__main__':
